@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
-
+const passport = require("passport");
 // Bringing in model from mongoDB
 const User = require("../models/Users");
 
@@ -55,8 +55,8 @@ router.post("/register", (req, res) => {
           });
         } else {
           const newUser = new User({
-            name: name,                         ////// long version of name = name
-            email,                              ////// short version of email = email
+            name: name, ////// long version of name = name
+            email, ////// short version of email = email
             password
           });
           //Hash Password
@@ -67,10 +67,13 @@ router.post("/register", (req, res) => {
               newUser.password = hash;
               // Save user
               newUser
-                .save()                        ///// .save is a mongoDb function to save to the db
+                .save() ///// .save is a mongoDb function to save to the db
                 .then(user => {
-                  req.flash('success_msg', 'You are now registered and can log in');
-                    res.redirect("/users/login");
+                  req.flash(
+                    "success_msg",
+                    "You are now registered and can log in"
+                  );
+                  res.redirect("/users/login");
                 })
                 .catch(err => console.log(err));
             })
@@ -79,4 +82,22 @@ router.post("/register", (req, res) => {
       });
   }
 });
+
+//login handle
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", {
+    successRedirect: "/dashboard",
+    failureRedirect: "/users/login",
+    failureFlash: true
+  })(req, res, next);
+});
+
+// Logout Handle
+router.get('/logout', (req, res)=>{
+req.logout();
+req.flash('success_msg', 'You are now logged out');
+res.redirect('/users/login');
+});
+
 module.exports = router;
+
